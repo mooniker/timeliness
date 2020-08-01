@@ -30,39 +30,67 @@ module.exports = {
     });
   },
 
-  querySchedule: function(scheduleJson, tripId, stopId) {
-    var results = [];
+  // querySchedule: function(scheduleJson, tripId, stopId) {
+  //
+  //   if (!scheduleJson) {
+  //     // console.error('scheduleJson', scheduleJson);
+  //     return null;
+  //   }
+  //   var results = [];
+  //
+  //   var dir0 = scheduleJson.Direction0;
+  //
+  //   var dir0_trip = dir0.filter(function(trip) {
+  //     return trip.TripID == tripId;
+  //   })[0].StopTimes;
+  //
+  //   var dir0_stop = dir0_trip.filter(function(stop) {
+  //     return stop.StopID == stopId;
+  //   })[0];
+  //
+  //   // console.log('stop schedule:', dir0_stop);
+  //
+  //   if (dir0_stop) results.push(dir0_stop.Time); //
+  //
+  //   // if (scheduleJson.Direction1) {
+  //   //
+  //   //   var dir1 = scheduleJson.Direction1;
+  //   //
+  //   //   var dir1_trip = dir1.filter(function(trip) {
+  //   //     return trip.TripID == tripId;
+  //   //   })[0].StopTimes;
+  //   //
+  //   //   var dir1_stop = dir1_trip.filter(function(stop) {
+  //   //     return stop.StopID == stopId;
+  //   //   })[0];
+  //   //
+  //   //   results.push(dir1_stop.Time);
+  //   //
+  //   // }
+  //
+  //   return results;
+  //
+  // },
 
-    var dir0 = scheduleJson.Direction0;
+  getNextBuses: function(stopId, callback) {
+    var requestUrl = 'https://api.wmata.com/NextBusService.svc/json/jPredictions';
+    var url = requestUrl + helpers.renderParamsForUri({
+      StopID: stopId,
+      api_key: env.WMATA_KEY
+    });
+    request(url, function(error, response, body) {
+      if (!error && response.statusCode === 200) {
+        var predictionsJson = JSON.parse(body);
+        callback(null, predictionsJson);
+      } else callback(error || response.statusCode);
+    });
+  },
 
-    var dir0_trip = dir0.filter(function(trip) {
-      return trip.TripID == tripId;
-    })[0].StopTimes;
+  getDeltaFromSchedule: function(scheduleJson, tripId, stopId) {
+    // console.log('schedule', scheduleJson);
+    var scheduled = this.querySchedule(scheduleJson, tripId, stopId);
+    // console.log(scheduled);
 
-    var dir0_stop = dir0_trip.filter(function(stop) {
-      return stop.StopID == stopId;
-    })[0];
-
-    results.push(dir0_stop.Time);
-
-    // if (scheduleJson.Direction1) {
-    //
-    //   var dir1 = scheduleJson.Direction1;
-    //
-    //   var dir1_trip = dir1.filter(function(trip) {
-    //     return trip.TripID == tripId;
-    //   })[0].StopTimes;
-    //
-    //   var dir1_stop = dir1_trip.filter(function(stop) {
-    //     return stop.StopID == stopId;
-    //   })[0];
-    //
-    //   results.push(dir1_stop.Time);
-    //
-    // }
-
-    return results;
-
-  }
+  },
 
 };
